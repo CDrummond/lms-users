@@ -1,0 +1,15 @@
+<?xml version='1.0' standalone='yes'?>
+<extension>
+  <name>PLUGIN_USERS</name>
+  <creator>Craig Drummond</creator>
+  <defaultState>enabled</defaultState>
+  <description>PLUGIN_USERS_DESC</description>
+  <id>440dd977-640f-40d0-a862-49dc14ca5602</id>
+  <module>Plugins::Users::Plugin</module>
+  <targetApplication>
+    <minVersion>9.0.0</minVersion>
+    <maxVersion>*</maxVersion>
+    <id>SlimServer</id>
+  </targetApplication>
+  <version>0.0.1</version>
+</extension>

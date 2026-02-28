@@ -1,0 +1,5 @@
+PLUGIN_USERS
+	EN	Users
+
+PLUGIN_USERS_DESC
+	EN	Create LMS users.
