@@ -57,7 +57,7 @@ sub _cliCommand {
 
     my $cmd = $request->getParam('_cmd');
 
-    if ($request->paramUndefinedOrNotOneOf($cmd, ['list', 'add', 'update', 'delete']) ) {
+    if ($request->paramUndefinedOrNotOneOf($cmd, ['list', 'add', 'update', 'delete', 'details']) ) {
         $request->setStatusBadParams();
         return;
     }
@@ -70,7 +70,7 @@ sub _cliCommand {
             foreach my $id (@list) {
                 $request->addResultLoop("users_loop", $cnt, "id", $id);
                 $request->addResultLoop("users_loop", $cnt, "name", $prefs->get("name_${id}"));
-                # TODO: avatar
+                $request->addResultLoop("users_loop", $cnt, "avatar", $prefs->get("avatar_${id}"));
                 $cnt++;
             }
         }
@@ -80,6 +80,7 @@ sub _cliCommand {
 
     if ($cmd eq 'add') {
         my $name = $request->getParam('name');
+        my $avatar = $request->getParam('avatar');
         if ($name) {
             my $id = 1;
             my $ids = $prefs->get('ids');
@@ -104,6 +105,9 @@ sub _cliCommand {
             push(@list, $id);
             $prefs->set('ids', join(',', @list));
             $prefs->set("name_${id}", $name);
+            if ($avatar) {
+                $prefs->set("avatar_${id}", $avatar);
+            }
             $request->addResult("id", $id);
             $request->addResult("new", 1);
             $request->setStatusDone();
@@ -114,15 +118,25 @@ sub _cliCommand {
 
     if ($cmd eq 'update') {
         my $name = $request->getParam('name');
+        my $avatar = $request->getParam('avatar');
         my $id = $request->getParam('id');
-        if ($name && $id) {
-            my $n = $prefs->get("name_${id}");
-            if ($n eq $name) {
-                $request->addResult("updated", 0);
-            } else {
-                $request->addResult("updated", 1);
-                $prefs->set("name_${id}", $name);
+        my $updated = 0;
+        if ($id) {
+            if ($name) {
+                my $n = $prefs->get("name_${id}");
+                if ($n ne $name) {
+                    $updated=1;
+                    $prefs->set("name_${id}", $name);
+                }
             }
+            if ($avatar) {
+                my $a = $prefs->get("avatar_${id}");
+                if ($a ne $avatar) {
+                    $updated=1;
+                    $prefs->set("avatar_${id}", $avatar);
+                }
+            }
+            $request->addResult("updated", $updated);
             $request->setStatusDone();
             return;
         }
@@ -146,9 +160,34 @@ sub _cliCommand {
                 }
                 if ($found) {
                     $prefs->remove("name_${id}");
+                    $prefs->remove("avatar_${id}");
                     $prefs->set('ids', join(',', @updated));
                     $request->setStatusDone();
                     return;
+                }
+            }
+        }
+        $request->setStatusBadParams();
+    }
+
+    if ($cmd eq 'details') {
+        my $id = $request->getParam('id');
+        if ($id) {
+            my $ids = $prefs->get('ids');
+            if ($ids) {
+                my @list = split(/,/, $ids);
+                my $found = 0;
+                foreach my $i (@list) {
+                    if ($i eq $id) {
+                        my $avatar = $prefs->get("avatar_${id}");
+                        $request->addResult("id", $id);
+                        $request->addResult("name", $prefs->get("name_${id}"));
+                        if ($avatar) {
+                            $request->addResult("avatar", $avatar);
+                        }
+                        $request->setStatusDone();
+                        return;
+                    }
                 }
             }
         }
